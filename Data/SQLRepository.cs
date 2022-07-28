@@ -60,10 +60,6 @@ namespace SSBD.Data{
                 for(int i = 0; i < order.Items.Count(); i++){
                     string item = order.Items[i];
                     int index = Array.IndexOf(stringvalues,item);
-                    System.Console.WriteLine("item is " + item);
-                    System.Console.WriteLine("Index is : " + index);
-                    System.Console.WriteLine("At i index: " + i);
-                    System.Console.WriteLine(order.AddOns[i]);
                     sqlCmd.Parameters[1].Value = index+1;
                     sqlCmd.Parameters[2].Value = order.AddOns[i];
                     await sqlCmd.ExecuteNonQueryAsync();
