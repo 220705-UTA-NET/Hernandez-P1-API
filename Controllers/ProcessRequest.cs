@@ -20,29 +20,18 @@ namespace SSBD.Controllers{
             };
             return result;
         }
-        //public async Task<ActionResult<SOMETHING>> GetSomething()
-        [HttpPost("/SendOrder")]
-        public ContentResult GetOrder([FromBody] JsonElement data){
-            string json = JsonSerializer.Serialize("msg:success");
+        [HttpPost("/SubmitOrder")]
+        public async Task<ContentResult> InsertOrder([FromBody] JsonElement data){
+            Models.MyOrder order = JsonSerializer.Deserialize<Models.MyOrder>(data);
+            logger.LogInformation(order.AddOns[1].ToString());
+            IRepository repo = new SqlRepository();
+            string queryresult = await repo.InsertOrder(order);
+            string json = JsonSerializer.Serialize("msg:" + queryresult);
             var result = new ContentResult(){
                 StatusCode = 200,
                 ContentType = "application/json",
                 Content = json
             };
-            //string otherdata = JsonContent.Create(data).ToString();// .Deserialize<string>(data);
-            //otherdata = JsonSerializer.Deserialize<string>((Stream)data);
-            /*JsonSerializerOptions options = new JsonSerializerOptions{
-                Converters = {
-                    new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
-                }
-            };*/ //unable to use the string enum converter
-            Models.MyOrder order = JsonSerializer.Deserialize<Models.MyOrder>(data);
-            order.Id = 10; 
-            //foreach(var each in order.Items){
-                //send data to database
-            //}
-            //logger.LogInformation(data.ToString());
-            logger.LogInformation(order.Items[0].ToString());
             return result;
         }
         [HttpGet("/getorder")]

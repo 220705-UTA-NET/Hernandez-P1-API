@@ -27,7 +27,7 @@ namespace SSBD.Models{
         public string Name {get;set;}
         //public ITEM[] Item {get;set;}
         public string[] Items{get;set;}
-        public string[] AddOn {get;set;}
+        public string[] AddOns {get;set;}
         public MyOrder(){
 
         }
@@ -35,7 +35,7 @@ namespace SSBD.Models{
             this.Id = id;
             this.Name = name;
             this.Items = items;
-            this.AddOn = addons;
+            this.AddOns = addons;
         }
     }
 }
