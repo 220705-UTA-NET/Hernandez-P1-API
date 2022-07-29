@@ -7,7 +7,7 @@ namespace SSBD.Data{
         private readonly ILogger<SqlRepository> logger;
         
         private readonly string connectionstring = Environment.GetEnvironmentVariable("connectionstring");
-        private readonly string[] stringvalues = {"Classic Single Burger","Classic Double Burger","Classic Triple Burger","Single Cheese Burger","Double Cheese Burger","Triple Cheese Burger","Veggie Burger","Double Burger","Chicken Burger","Chicken Fried Steak","Fries","Onion Rings","Fried Chicken Pieces","Fried Cheese Sticks","Fried Zucchini","Coca-Cola","Pepsi","Sprite","Dr. Pepper","Lemonade"};
+        private readonly string[] stringvalues = {"Classic Single Burger","Classic Double Burger","Classic Triple Burger","Single Cheese Burger","Double Cheese Burger","Triple Cheese Burger","Veggie Burger","Chicken Burger","Chicken Fried Steak","Fries","Onion Rings","Fried Chicken Pieces","Fried Cheese Sticks","Fried Zucchini","Coca-Cola","Pepsi","Sprite","Dr. Pepper","Lemonade"};
         //public SqlRepository(string connectionstring, ILogger<SqlRepository> logger){
         //    this.logger = logger;
         //}
@@ -69,6 +69,21 @@ namespace SSBD.Data{
             }
             return "success";
         } 
+        public async Task <decimal> GetItemPrice(int itemid){
+            using SqlConnection connection = new SqlConnection(connectionstring);
+            await connection.OpenAsync();
+            Console.WriteLine("the incoming id is " + itemid);
+            string sqlQuery = "SELECT BasePrice FROM ssburger.MenuItem WHERE Id=@myid";
+            using SqlCommand sqlCmd = new(sqlQuery, connection);
+            sqlCmd.Parameters.AddWithValue("@myid",itemid);
+            using SqlDataReader reader = await sqlCmd.ExecuteReaderAsync();
+            decimal price = 0.10M;
+            while(reader.Read()){
+                price = reader.GetDecimal(0);
+                Console.WriteLine("price from db is " + price);
+            }
+            return price;
+        }
         public async Task<string> DeleteOrderByIdAsync(int id){
             string status = "success";
             return status;

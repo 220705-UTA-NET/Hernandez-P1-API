@@ -7,5 +7,6 @@ namespace SSBD.Data{
         Task<string> UpdateOrderByIdAsync(int id, int complete);
         Task<List<MyOrder>> GetPendingOrders();
         Task<List<MyOrder>> GetCompletedOrders();
+        Task<Decimal> GetItemPrice(int itemid);
     }
 }
