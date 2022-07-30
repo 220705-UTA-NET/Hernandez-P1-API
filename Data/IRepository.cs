@@ -1,5 +1,5 @@
-using SSBD.Models;
-namespace SSBD.Data{
+using SSBD.API.Models;
+namespace SSBD.API.Data{
     public interface IRepository{
         Task<MyOrder> GetOrderByIdAsync(int id);
         Task<string> InsertOrder(MyOrder order);

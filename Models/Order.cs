@@ -1,4 +1,4 @@
-namespace SSBD.Models{
+namespace SSBD.API.Models{
     public class MyOrder{
         public enum ITEM{
         ClassicSingleBurger,

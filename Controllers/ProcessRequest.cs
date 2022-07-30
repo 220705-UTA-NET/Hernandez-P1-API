@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
-using SSBD.Models;
-using SSBD.Data;
-namespace SSBD.Controllers{
+using SSBD.API.Models;
+using SSBD.API.Data;
+namespace SSBD.API.Controllers{
     [ApiController]
-    [Route("[controller]")]
+    [Route("api")]
     public class ProcessRequest : ControllerBase{
         private readonly ILogger<ProcessRequest> logger;
         public ProcessRequest(ILogger<ProcessRequest> logger){
@@ -48,7 +48,7 @@ namespace SSBD.Controllers{
             };
             return result;
         }
-        [HttpGet("getorder/{id}")]
+        [HttpGet("getorder/{Id}")]
         public async Task<ContentResult> GetOrderById(int Id){
             IRepository repo = new SqlRepository();
             MyOrder queryresult = await repo.GetOrderByIdAsync(Id);
@@ -73,7 +73,7 @@ namespace SSBD.Controllers{
             if(addon.Contains("double")){
                 price += (decimal)1.00;
             }
-            if(addon.Contains("double")){
+            if(addon.Contains("triple")){
                 price += (decimal)2.00;
             }
             
