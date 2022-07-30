@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Logging;
 using System.Data.SqlClient;
-using SSBD.Models;
+using SSBD.API.Models;
 using System.IO;
-namespace SSBD.Data{
+namespace SSBD.API.Data{
     public class SqlRepository : IRepository{
         private readonly ILogger<SqlRepository> logger;
         
