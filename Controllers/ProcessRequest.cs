@@ -67,7 +67,18 @@ namespace SSBD.API.Controllers{
         public async Task<ContentResult> GetOrderById(int Id){
             IRepository repo = new SqlRepository();
             MyOrder queryresult = await repo.GetOrderByIdAsync(Id);
-            MyResponse response = new MyResponse(queryresult, 0,"retrevied");
+            decimal total = 0.00M;
+            
+            var tasks = new List<Task<decimal>>();
+            for(int i = 0; i < queryresult.Items.Count(); i++){
+
+                var value = GetItemPrice(queryresult.Items[i], queryresult.AddOns[i]);
+                tasks.Add(value);
+
+            }
+            decimal[] totalarray = await Task.WhenAll(tasks);
+            total = totalarray.Sum();
+            MyResponse response = new MyResponse(queryresult, total,"retrieved");
             System.Console.WriteLine(response.msg);
             //string json = JsonSerializer.Serialize(queryresult);
             string json = JsonSerializer.Serialize(response);
@@ -75,6 +86,18 @@ namespace SSBD.API.Controllers{
                 StatusCode = 200,
                 ContentType = "application/json",
                 Content = json
+            };
+            return result;
+        }
+        [HttpGet("searchorderbyattributes")]
+        public async Task<ContentResult> GetOrderByAttribute(string? name, string? complete){
+            IRepository repo = new SqlRepository();
+            List<MyOrder> myOrders = await repo.SearchOrders(name,"Y");
+            System.Console.WriteLine(myOrders.Count());
+            var result = new ContentResult(){
+                StatusCode = 200,
+                ContentType = "application/json",
+                Content = "{'status':'ok'}"
             };
             return result;
         }

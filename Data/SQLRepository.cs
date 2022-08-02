@@ -36,8 +36,8 @@ namespace SSBD.API.Data{
             
             return myOrder;
         }
-        public async Task<string> InsertOrder(MyOrder order){
-            int newid = -1;
+        public async Task<MyOrder> InsertOrder(MyOrder order){
+            int newid;
             using (SqlConnection connection = new SqlConnection(connectionstring)){
                 await connection.OpenAsync();
                 string sqlQuery = "INSERT INTO ssburger.CompleteOrder(Name,Complete,Updateon) OUTPUT INSERTED.ID VALUES(@name,@complete,@updateon)";
@@ -46,7 +46,8 @@ namespace SSBD.API.Data{
                 sqlCmd.Parameters.AddWithValue("@complete","N");
                 sqlCmd.Parameters.AddWithValue("@updateon",DateTime.Now);
                 newid = (int) sqlCmd.ExecuteScalar();
-                string tolog = "we have an id? check check" + newid;
+                order.Id = newid;
+                //string tolog = "we have an id? check check" + newid;
                 //logger.LogInformation(tolog);
                 connection.Close();
             }
@@ -67,7 +68,7 @@ namespace SSBD.API.Data{
                 }
                 connection.Close();
             }
-            return "success";
+            return order;
         } 
         public async Task <decimal> GetItemPrice(int itemid){
             using SqlConnection connection = new SqlConnection(connectionstring);
@@ -85,20 +86,89 @@ namespace SSBD.API.Data{
             return price;
         }
         public async Task<string> DeleteOrderByIdAsync(int id){
-            string status = "success";
-            return status;
+            throw new NotImplementedException();
+
         }
         public async Task<string> UpdateOrderByIdAsync(int id, int complete){
-            string status = "success";
-            return status;
-        }
-        public async Task<List<MyOrder>> GetPendingOrders(){
-            
             throw new NotImplementedException();
+
         }
-        public async Task<List<MyOrder>> GetCompletedOrders(){
+        public async Task<List<MyOrder>> SearchOrders(string? name, string? pending){
+            using SqlConnection connection = new SqlConnection(connectionstring);
+            await connection.OpenAsync();
+            string sqlQuery = "";
+            bool searchbyname = true;
+            if(name != null && name.Count() > 1){
+                sqlQuery = "SELECT Order_Id, CompleteOrder.Name, MenuItem.Name AS Item, AddOn from ssburger.MenuOrder INNER JOIN ssburger.CompleteOrder ON ssburger.MenuOrder.Order_Id=ssburger.CompleteOrder.Id INNER JOIN ssburger.MenuItem ON ssburger.MenuOrder.MenuId = ssburger.MenuItem.Id WHERE ssburger.CompleteOrder.Name=@myname";
+            }
+            else if(pending.ToUpper() == "Y" || pending.ToUpper() == "N"){
+                sqlQuery = "SELECT Order_Id, CompleteOrder.Name, MenuItem.Name AS Item, AddOn from ssburger.MenuOrder INNER JOIN ssburger.CompleteOrder ON ssburger.MenuOrder.Order_Id=ssburger.CompleteOrder.Id INNER JOIN ssburger.MenuItem ON ssburger.MenuOrder.MenuId = ssburger.MenuItem.Id WHERE Complete=@complete";
+                searchbyname = false;
+            }
+            else{
+                return null;
+            }
             
-            throw new NotImplementedException();
+            using SqlCommand sqlCmd = new(sqlQuery!, connection);
+            if(searchbyname){
+                sqlCmd.Parameters.AddWithValue("@myname",name);
+            }
+            else{
+                sqlCmd.Parameters.AddWithValue("@complete",pending.ToUpper());
+            }
+            using SqlDataReader reader = await sqlCmd.ExecuteReaderAsync();
+            int myid = 0;
+            string outname = null;
+            string outcomplete;
+            List<string> items = new List<string>();
+            List<string> addons = new List<string>();
+            List<MyOrder> myorders = new List<MyOrder>();
+            while(reader.Read()){
+                myid = reader.GetInt32(0);
+                name = reader.GetString(1);
+                string item = reader.GetString(2);
+                string addon = reader.GetString(3);
+                items.Add(item);
+                addons.Add(addon);
+                //MyOrder myOrder = new MyOrder(myid,outname,items.ToArray(),addons.ToArray());
+                myorders.Add(new MyOrder(myid,outname,items.ToArray(),addons.ToArray()));
+            }
+            
+            connection.Close();
+            return myorders;
+        }
+
+        public async Task<Models.MyOrder> CompleteOrder(int id){
+            using (SqlConnection connection = new SqlConnection(connectionstring)){
+            await connection.OpenAsync();
+            string sqlQuery = @"UPDATE ssburger.CompleteOrder SET Complete='Y', Updateon=@dtime WHERE Order_Id=@myid";
+            using SqlCommand sqlCmd = new(sqlQuery, connection);
+            sqlCmd.Parameters.AddWithValue("@myid",id);
+            sqlCmd.Parameters.AddWithValue("@dtime",DateTime.Now);
+            sqlCmd.ExecuteNonQuery();
+            connection.Close();
+            }
+            SqlConnection connection1 = new SqlConnection(connectionstring);
+            await connection1.OpenAsync();
+            string sqlQuery2 = "SELECT Order_Id, CompleteOrder.Name, MenuItem.Name AS Item, AddOn from ssburger.MenuOrder INNER JOIN ssburger.CompleteOrder ON ssburger.MenuOrder.Order_Id=ssburger.CompleteOrder.Id INNER JOIN ssburger.MenuItem ON ssburger.MenuOrder.MenuId = ssburger.MenuItem.Id WHERE Order_Id=@myid";
+            using SqlCommand sqlCommand = new(sqlQuery2,connection1);
+            using SqlDataReader reader = await sqlCommand.ExecuteReaderAsync();
+            int myid = 0;
+            string name = null;
+            string complete;
+            List<string> items = new List<string>();
+            List<string> addons = new List<string>();
+            while(reader.Read()){
+                myid = reader.GetInt32(0);
+                name = reader.GetString(1);
+                string item = reader.GetString(2);
+                string addon = reader.GetString(3);
+                items.Add(item);
+                addons.Add(addon);
+            }
+            MyOrder myOrder = new MyOrder(myid,name,items.ToArray(),addons.ToArray());
+            connection1.Close();
+            return myOrder;
         }
     }
 }
