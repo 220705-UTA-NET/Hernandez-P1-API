@@ -10,9 +10,14 @@ namespace SSBD.API.Controllers{
         public ProcessRequest(ILogger<ProcessRequest> logger){
             this.logger = logger;
         }
-        [HttpGet("helloworld")]
-        public ContentResult PrintHello(){
-            string json = JsonSerializer.Serialize("hello:world");
+        [HttpGet("/")]
+        public ContentResult GetInfo(){
+            string json = @"{
+            ""root and info path"":""/api/"",
+            ""status"":""queryresult"",
+            ""order"":""order"",
+            ""total"":""total"",
+            ""msg"":""order updated with correct id""}"; 
             var result = new ContentResult(){
                 StatusCode = 200,
                 ContentType = "application/json",
@@ -20,7 +25,17 @@ namespace SSBD.API.Controllers{
             };
             return result;
         }
-        [HttpPost("SubmitOrder")]
+        [HttpGet("helloworld")]
+        public ContentResult PrintHello(){
+            string json = JsonSerializer.Serialize("{hello:world}");
+            var result = new ContentResult(){
+                StatusCode = 200,
+                ContentType = "application/json",
+                Content = json
+            };
+            return result;
+        }
+        [HttpPost("submitorder")]
         public async Task<ContentResult> InsertOrder([FromBody] JsonElement data){
             Models.MyOrder order = JsonSerializer.Deserialize<Models.MyOrder>(data);
             decimal total = 0.00M;
@@ -34,25 +49,28 @@ namespace SSBD.API.Controllers{
             }
             decimal[] totalarray = await Task.WhenAll(tasks);
             total = totalarray.Sum();
-            //decimal priceofburger = await GetItemPrice("Classic Single Burger","with extra cheese");
-            //logger.LogInformation("price of the burger with extra cheese should be " + priceofburger);
             logger.LogInformation("I have a total of " + total);
             logger.LogInformation(order.AddOns[0].ToString());
-            //IRepository repo = new SqlRepository();
-            //string queryresult = await repo.InsertOrder(order);
-            string json = JsonSerializer.Serialize("msg:" + "queryresult" + ",total:"+total); 
+            IRepository repo = new SqlRepository();
+            MyOrder queryresult = await repo.InsertOrder(order);
+            MyResponse response = new MyResponse(queryresult, total, "order updated with correct id");
+            string json = JsonSerializer.Serialize(response);
             var result = new ContentResult(){
                 StatusCode = 200,
                 ContentType = "application/json",
                 Content = json
             };
+            Console.WriteLine(json);
             return result;
         }
         [HttpGet("getorder/{Id}")]
         public async Task<ContentResult> GetOrderById(int Id){
             IRepository repo = new SqlRepository();
             MyOrder queryresult = await repo.GetOrderByIdAsync(Id);
-            string json = JsonSerializer.Serialize(queryresult);
+            MyResponse response = new MyResponse(queryresult, 0,"retrevied");
+            System.Console.WriteLine(response.msg);
+            //string json = JsonSerializer.Serialize(queryresult);
+            string json = JsonSerializer.Serialize(response);
             var result = new ContentResult(){
                 StatusCode = 200,
                 ContentType = "application/json",
